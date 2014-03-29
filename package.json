@@ -1,0 +1,32 @@
+{
+  "name": "gulp-deploy-azure-cdn",
+  "version": "0.0.1",
+  "description": "A gulp task to deploy assets to Windows Azure CDN",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bestander/gulp-deploy-azure-cdn.git"
+  },
+  "keywords": [
+    "gulpplugin",
+    "azure",
+    "deployment",
+    "cdn",
+    "upload"
+  ],
+  "author": "Konstantin Raev",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bestander/gulp-deploy-azure-cdn/issues"
+  },
+  "homepage": "https://github.com/bestander/gulp-deploy-azure-cdn",
+  "dependencies": {
+    "azure": "^0.8.1",
+    "mime": "^1.2.11",
+    "gulp-util": "^2.2.14",
+    "through2": "^0.4.1"
+  }
+}
