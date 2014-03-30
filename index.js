@@ -72,8 +72,7 @@ function uploadFileToAzureCdn(containerName, destFileName, sourceFile, metadata)
     var exec = options.testRun ? noop : blobService.createBlockBlobFromFile;
     exec.call(blobService, containerName, destFileName, sourceFile, metadata, function(err) {
         if (err) {
-            self.emit('error', new gutil.PluginError(PLUGIN_NAME, err));
-            return cb();
+            deferred.reject(err);
         }
         gutil.log(PLUGIN_NAME, "Uploaded file", destFileName, "to", containerName);
         deferred.resolve();
