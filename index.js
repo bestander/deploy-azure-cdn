@@ -49,6 +49,11 @@ module.exports = function (options) {
         return deferred.promise;
     }
 
+    function noop() {
+        var success = arguments[arguments.length - 1];
+        success();
+    }
+
     function emptyTargetFolder() {
         var deferred = Q.defer();
         if(options.deleteExistingBlobs){
@@ -62,7 +67,8 @@ module.exports = function (options) {
                 var count = blobs.length;
                 blobs.forEach(function (blob, next) {
                     gutil.log(PLUGIN_NAME + " deleting file " + blob.name);
-                    blobService.deleteBlob(options.containerName, blob.name, function (err, success) {
+                    var exec = options.testRun ? noop : blobService.deleteBlob;
+                    exec.call(blobService, options.containerName, blob.name, function (err, success) {
                         if (err) {
                             gutil.log(PLUGIN_NAME + " Error while deleting blob " + blob.name);
                             throw PluginError(PLUGIN_NAME, err);
@@ -78,6 +84,8 @@ module.exports = function (options) {
         }
         return deferred.promise;
     }
+    var preparation = createContainer().
+        then(emptyTargetFolder);
 
     return through.obj(function (file, enc, cb) {
         var self = this;
@@ -96,35 +104,43 @@ module.exports = function (options) {
             return cb();
         }
 
-        var fileDirname = file.base;
+        console.log(file);
 
-        var blobName = options.cwd + file.name;
-        var localFilePath;
+        var destFileName = options.cwd + file.name;
+        var sourceFile = file.name;
         var metadata = clone(options.metadata);
-        metadata.contentType = mime.lookup(source);
-
-
-        function compressFileToBlobStorage(containerName, destFileName, sourceFile, metadata) {
-            return gzipFile(sourceFile, sourceFile, metadata)
+        metadata.contentType = mime.lookup(sourceFile);
+        if(options.zip){
+            preparation.then(gzipFile(sourceFile))
                 .then(function (tmpFile) {
                     return chooseSmallerFileAndModifyContentType(tmpFile, sourceFile, metadata);
                 })
                 .then(function (res) {
                     gutil.log(PLUGIN_NAME, "Based on file size decided to upload", res.fileToUpload, "with contentEncoding", res.updatedMetadata.contentEncoding);
-                    return copyFileToBlobStorage(containerName, destFileName, res.fileToUpload, res.updatedMetadata)
+                    return uploadFileToAzureCdn(options.containerName, destFileName, res.fileToUpload, res.updatedMetadata)
                         .finally(function(){
                             fs.unlinkSync(res.zippedTmpFile);
                         });
-                });
+                }).then(function(){
+                    cb();
+                })
+        } else {
+            preparation.then(uploadFileToAzureCdn(options.containerName, destFileName, sourceFile, metadata)).then(
+                function() {
+                    cb();
+                }
+            )
         }
 
-        function copyFileToBlobStorage(containerName, destFileName, sourceFile, metadata) {
+        function uploadFileToAzureCdn(containerName, destFileName, sourceFile, metadata) {
             var deferred = Q.defer();
-            blobService.createBlockBlobFromFile(containerName, destFileName, sourceFile, metadata, function(err) {
+            var exec = options.testRun ? noop : blobService.createBlockBlobFromFile;
+            exec.call(blobService, containerName, destFileName, sourceFile, metadata, function(err) {
                 if (err) {
                     self.emit('error', new gutil.PluginError(PLUGIN_NAME, err));
                     return cb();
                 }
+                gutil.log(PLUGIN_NAME, "Uploaded file", destFileName, "to", containerName);
                 deferred.resolve();
             });
             return deferred.promise;
