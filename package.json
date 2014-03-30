@@ -1,6 +1,6 @@
 {
   "name": "gulp-deploy-azure-cdn",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A gulp task to deploy assets to Windows Azure CDN",
   "main": "index.js",
   "scripts": {
