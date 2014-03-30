@@ -8,6 +8,7 @@ var path = require('path');
 var zlib = require('zlib');
 var fs = require('fs');
 var extend = require('node.extend');
+var async = require('async');
 
 function createAzureCdnContainer(blobService, options) {
     var deferred = Q.defer();
@@ -140,10 +141,9 @@ function clone(obj) {
 }
 
 module.exports = {
-    gulpPlugin: function(options){
+    gulpPlugin: function(opt){
         const PLUGIN_NAME = 'gulp-deploy-azure-cdn ';
-
-        extend(options, {
+        var options = extend({}, {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: null, // container name, required
             containerOptions: {publicAccessLevel: "blob"}, // container options
@@ -153,7 +153,7 @@ module.exports = {
             gzip: false, // gzip files if they become smaller after zipping, content-encoding header will change if file is zipped
             metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
             testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
-        });
+        }, opt);
         if (!options.containerName) {
             throw new PluginError(PLUGIN_NAME, "Missing containerName!");
         }
