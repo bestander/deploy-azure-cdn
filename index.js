@@ -66,11 +66,12 @@ function emptyAzureCdnTargetFolder(blobService, options, logger) {
 function uploadFileToAzureCdn(blobService, options, logger, destFileName, sourceFile, metadata) {
     var deferred = Q.defer();
     var exec = options.testRun ? noop : blobService.createBlockBlobFromFile;
+    logger("Uploading", destFileName, "encoding", metadata.contentEncoding);
     exec.call(blobService, options.containerName, destFileName, sourceFile, metadata, function(err) {
         if (err) {
             deferred.reject(err);
         }
-        logger("Uploaded file", destFileName, "to", options.containerName);
+        logger("Uploaded", destFileName, "to", options.containerName);
         deferred.resolve();
     });
     return deferred.promise;
@@ -140,79 +141,99 @@ function clone(obj) {
     return copy;
 }
 
+function deploy(opt, files, logger, cb) {
+    var options = extend({}, {
+        serviceOptions: [], // custom arguments to azure.createBlobService
+        containerName: null, // container name, required
+        containerOptions: {publicAccessLevel: "blob"}, // container options
+        folder: '', // path within container
+        deleteExistingBlobs: true, // true means recursively deleting anything under folder
+        concurrentUploadThreads: 10, // number of concurrent uploads, choose best for your network condition
+        gzip: false, // gzip files if they become smaller after zipping, content-encoding header will change if file is zipped
+        metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
+        testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
+    }, opt);
+    if (!options.containerName) {
+        return cb("Missing containerName!");
+    }
+    var blobService = azure.createBlobService.apply(azure, options.serviceOptions);
+
+    var preparation = createAzureCdnContainer(blobService, options).
+        then(function() {
+            return emptyAzureCdnTargetFolder(blobService, options, logger);
+        });
+    async.eachLimit(files, options.concurrentUploadThreads, function(file, eachCallback) {
+        var relativePath = file.path.replace(file.cwd + path.sep, '');
+        var destFileName = options.folder + relativePath;
+        var sourceFile = file.path;
+        var metadata = clone(options.metadata);
+        metadata.contentType = mime.lookup(sourceFile);
+        if (options.zip) {
+            preparation.then(function () {
+                return gzipFile(sourceFile)
+            }).then(function (tmpFile) {
+                return chooseSmallerFileAndModifyContentType(tmpFile, sourceFile, metadata);
+            }).then(function (res) {
+                return uploadFileToAzureCdn(blobService, options, logger, destFileName, res.fileToUpload, res.updatedMetadata)
+                    .finally(function () {
+                        fs.unlinkSync(res.zippedTmpFile);
+                    });
+            }).then(function(){
+                eachCallback();
+            }).catch(function (error) {
+                eachCallback(error);
+            });
+        } else {
+            preparation.then(function () {
+                return uploadFileToAzureCdn(blobService, options, logger, destFileName, sourceFile, metadata)
+            }).then(function(){
+                eachCallback();
+            }).catch(function (error) {
+                eachCallback(error);
+            });
+        }
+    }, function(err) {
+        cb(err);
+    });
+}
+
 module.exports = {
     gulpPlugin: function(opt){
         const PLUGIN_NAME = 'gulp-deploy-azure-cdn ';
-        var options = extend({}, {
-            serviceOptions: [], // custom arguments to azure.createBlobService
-            containerName: null, // container name, required
-            containerOptions: {publicAccessLevel: "blob"}, // container options
-            folder: '', // path within container
-            deleteExistingBlobs: true, // true means recursively deleting anything under folder
-            concurrentUploadThreads: 10, // number of concurrent uploads, choose best for your network condition
-            gzip: false, // gzip files if they become smaller after zipping, content-encoding header will change if file is zipped
-            metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
-            testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
-        }, opt);
-        if (!options.containerName) {
-            throw new PluginError(PLUGIN_NAME, "Missing containerName!");
-        }
-        var blobService = azure.createBlobService.apply(azure, options.serviceOptions);
-        var logger = gutil.log.bind(PLUGIN_NAME);
-
-        var preparation = createAzureCdnContainer(blobService, options).
-            then(function() {
-                return emptyAzureCdnTargetFolder(blobService, options, logger);
-            });
-        return through.obj(function (file, enc, cb) {
-            var self = this;
-
-            if (path.basename(file.path)[0] === '_') {
-                return cb();
-            }
-
-            if (file.isNull()) {
-                self.push(file);
-                return cb();
-            }
-
-            if (file.isStream()) {
-                self.emit('error', new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
-                return cb();
-            }
-
-            var relativePath = file.path.replace(file.cwd + path.sep, '');
-            var destFileName = options.folder + relativePath;
-            var sourceFile = file.path;
-            var metadata = clone(options.metadata);
-            metadata.contentType = mime.lookup(sourceFile);
-            try {
-                if (options.zip) {
-                    preparation.then(function () {
-                        return gzipFile(sourceFile)
-                    }).then(function (tmpFile) {
-                        return chooseSmallerFileAndModifyContentType(tmpFile, sourceFile, metadata);
-                    }).then(function (res) {
-                        gutil.log(PLUGIN_NAME, "Based on file size decided to upload", res.fileToUpload, "with contentEncoding", res.updatedMetadata.contentEncoding);
-                        return uploadFileToAzureCdn(blobService, options, logger, destFileName, res.fileToUpload, res.updatedMetadata)
-                            .finally(function () {
-                                fs.unlinkSync(res.zippedTmpFile);
-                            });
-                    }).catch(function (error) {
-                        self.emit('error', new gutil.PluginError(PLUGIN_NAME, error));
-                    });
-                } else {
-                    preparation.then(function () {
-                        return uploadFileToAzureCdn(blobService, options, logger, destFileName, sourceFile, metadata)
-                    }).catch(function (error) {
-                        self.emit('error', error);
-                    });
+        var files = [];
+        return through.obj(
+            function (file, enc, cb) {
+                var self = this;
+                if (path.basename(file.path)[0] === '_') {
+                    return cb();
                 }
-            } catch (err) {
-                self.emit('error', new gutil.PluginError(PLUGIN_NAME, err));
-            }
-            // TODO we must do async at rate options.concurrentUploadThreads
-            return cb();
-        });
-    }
+                if (file.isNull()) {
+                    self.push(file);
+                    return cb();
+                }
+                if (file.isStream()) {
+                    this.emit('error', new gutil.PluginError(PLUGIN_NAME, 'Streaming not supported'));
+                    return cb();
+                }
+                files.push(file);
+                return cb();
+            },
+            function(cb){
+                var self = this;
+                var logger = gutil.log.bind(PLUGIN_NAME);
+                try {
+                    deploy(opt, files, logger, function(err){
+                        if(err){
+                            self.emit('error', new gutil.PluginError(PLUGIN_NAME, err));
+                        }
+                        console.log("FINISHED")
+                        cb();
+                    })
+                } catch (err) {
+                    self.emit('error', new gutil.PluginError(PLUGIN_NAME, err));
+                    cb();
+                }
+            });
+    },
+    vanilla: deploy
 };
