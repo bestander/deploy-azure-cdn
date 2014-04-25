@@ -25,7 +25,7 @@ parameters:
   - folder: '', // path within container. Default is root directory of container
   - deleteExistingBlobs: true, // set it to false to skip recursive deleting blobs in folder
   - concurrentUploadThreads : 10, // number of concurrent uploads, choose best for your network condition
-  - gzip: false, // true if want to gzip the files before uploading. File will be zipped only if compressed file is smaller than original
+  - zip: false, // true if want to gzip the files before uploading. File will be zipped only if compressed file is smaller than original
   - metadata: {cacheControl: 'public, max-age=31556926'} // metadata for each uploaded file
   - testRun: false, // set to true if you just want to check connectivity and see deployment logs. No blobs will be removed or uplaoded.
 - files: [] - array of files objects to be deployed
@@ -46,7 +46,7 @@ gulp.task('upload-app-to-azure', function () {
         containerName: 'test',
         serviceOptions: ['<my azure cdn name>', '<my azure cdn secret>'],
         folder:  'build-0.0.1/',
-        gzip: true,
+        zip: true,
         deleteExistingBlobs: true,
         metadata: {
             cacheControl: 'public, max-age=31530000', // cache in browser
