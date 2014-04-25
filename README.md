@@ -1,7 +1,7 @@
 # deploy-azure-cdn
 
 A node package for copying a directory to Azure CDN storage.
-Also it provides a gulp plugin interface for easy deploy with (gulp)[http://gulpjs.com/]
+Also it provides a gulp plugin interface for easy deploy with [gulp](http://gulpjs.com/)
 
 Azure SDK uses by default the environment variables AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_ACCESS_KEY.
 Custom connection arguments can be set in options.
@@ -46,7 +46,7 @@ gulp.task('upload-app-to-azure', function () {
         containerName: 'test',
         serviceOptions: ['<my azure cdn name>', '<my azure cdn secret>'],
         folder:  'build-0.0.1/',
-        zip: true,
+        gzip: true,
         deleteExistingBlobs: true,
         metadata: {
             cacheControl: 'public, max-age=31530000', // cache in browser
