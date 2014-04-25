@@ -149,7 +149,7 @@ function deploy(opt, files, logger, cb) {
         folder: '', // path within container
         deleteExistingBlobs: true, // true means recursively deleting anything under folder
         concurrentUploadThreads: 10, // number of concurrent uploads, choose best for your network condition
-        gzip: false, // gzip files if they become smaller after zipping, content-encoding header will change if file is zipped
+        zip: false, // gzip files if they become smaller after zipping, content-encoding header will change if file is zipped
         metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
         testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
     }, opt);
