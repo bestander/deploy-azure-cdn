@@ -1,8 +1,6 @@
 "use strict";
 // otherwise it starts mocking all node packages
 jest.autoMockOff();
-jest.mock('azure');
-//jest.dontMock('../src/deployTask');
 
 describe('Azure Deploy Task', function () {
     describe('should stop execution with error callback', function () {
@@ -28,6 +26,7 @@ describe('Azure Deploy Task', function () {
     });
 
     it('should create a new blob container if it does not exist', function () {
+        jest.mock('azure');
         var deploy = require('../src/deployTask');
         var azure = require('azure');
         var files = [];
