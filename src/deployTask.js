@@ -161,7 +161,7 @@ module.exports = function deploy(opt, files, logger, cb) {
             return emptyAzureCdnTargetFolder(blobService, options, logger);
         });
     async.eachLimit(files, options.concurrentUploadThreads, function(file, eachCallback) {
-        var relativePath = file.path.replace(file.cwd + path.sep, '');
+        var relativePath = path.relative(file.cwd, file.path);
         var destFileName = options.folder + relativePath;
         var sourceFile = file.path;
         var metadata = clone(options.metadata);
