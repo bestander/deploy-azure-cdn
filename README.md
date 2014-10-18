@@ -60,3 +60,4 @@ gulp.task('upload-app-to-azure', function () {
 ## Grunt plugin
 See my other repository: https://github.com/bestander/grunt-azure-cdn-deploy.
 Code is very similar but less structured.
+
