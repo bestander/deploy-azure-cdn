@@ -6,7 +6,7 @@ describe('Azure Deploy Task', function () {
 
     it('should not delete any blobs if deleteExistingBlobs is false', function () {
         jest.mock('azure');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var files = [];
         var logger = {};
@@ -33,7 +33,7 @@ describe('Azure Deploy Task', function () {
 
     it('should list the blobs with logger service but not delete them if testRun option is true', function () {
         jest.mock('azure');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var files = [];
         var logger = jest.genMockFunction();
@@ -75,7 +75,7 @@ describe('Azure Deploy Task', function () {
 
     it('should delete all blobs returned from azure.listBlobs and call logger after deletion', function () {
         jest.mock('azure');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var files = [];
         var logger = jest.genMockFunction();
@@ -117,7 +117,7 @@ describe('Azure Deploy Task', function () {
 
     it('should stop execution if listBlobs returned error', function () {
         jest.mock('azure');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var files = [];
         var logger = jest.genMockFunction();
@@ -151,7 +151,7 @@ describe('Azure Deploy Task', function () {
 
     it('should stop execution if deleteBlob returned error', function () {
         jest.mock('azure');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var files = [
             {cwd: 'app', path: '/dist/file1.js'},
@@ -191,7 +191,7 @@ describe('Azure Deploy Task', function () {
 
     it('should clear folder and finish gracefully even if there are no files to upload', function () {
         jest.mock('azure');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var files = [
         ];

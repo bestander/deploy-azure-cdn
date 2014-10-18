@@ -6,7 +6,7 @@ describe('Azure Deploy Task', function () {
 
     it('should create a new blob container if it does not exist', function () {
         jest.mock('azure');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var files = [];
         var logger = {};
@@ -30,7 +30,7 @@ describe('Azure Deploy Task', function () {
 
     it('should stop execution a new blob container can\'t be created by azure', function () {
         jest.mock('azure');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var files = [];
         var logger = {};

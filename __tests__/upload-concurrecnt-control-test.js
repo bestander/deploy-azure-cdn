@@ -7,7 +7,7 @@ describe('Azure Deploy Task', function () {
     it('should upload concurrently not more than set in concurrentUploadThreads', function () {
         jest.mock('azure');
         jest.mock('zlib');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var zlib = require('zlib');
         var files = [
@@ -58,7 +58,7 @@ describe('Azure Deploy Task', function () {
     it('should exit with error if one of the uploads fails', function () {
         jest.mock('azure');
         jest.mock('zlib');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var zlib = require('zlib');
         var files = [

@@ -5,7 +5,7 @@ jest.autoMockOff();
 describe('Azure Deploy Task', function () {
 
     it('should stop execution with error callback if container name is not provided', function () {
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var files = [];
         var logger = {};
         var cb = jest.genMockFunction();

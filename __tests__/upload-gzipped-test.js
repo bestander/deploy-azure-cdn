@@ -7,7 +7,7 @@ describe('Azure Deploy Task', function () {
     it('should upload files as is, with no zipping, if zip option is false', function () {
         jest.mock('azure');
         jest.mock('zlib');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var zlib = require('zlib');
         var files = [
@@ -48,7 +48,7 @@ describe('Azure Deploy Task', function () {
         jest.mock('zlib');
         jest.mock('fs');
         var fs = require('fs');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var zlib = require('zlib');
         var files = [
@@ -113,7 +113,7 @@ describe('Azure Deploy Task', function () {
         jest.mock('zlib');
         jest.mock('fs');
         var fs = require('fs');
-        var deploy = require('../src/deployTask');
+        var deploy = require('../src/deploy-task');
         var azure = require('azure');
         var zlib = require('zlib');
         var files = [
