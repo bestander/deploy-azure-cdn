@@ -16,6 +16,7 @@ function createAzureCdnContainer(blobService, options) {
                 deferred.reject("Container being deleted, retry in 10 seconds")
             }
             deferred.reject(err);
+            return;
         }
         deferred.resolve();
     });
@@ -29,16 +30,17 @@ function noop() {
 
 function emptyAzureCdnTargetFolder(blobService, options, logger) {
     var deferred = Q.defer();
-    if(!options.deleteExistingBlobs){
+    if (!options.deleteExistingBlobs) {
         deferred.resolve();
     } else {
         // removing all blobs in destination structure
         blobService.listBlobs(options.containerName, {prefix: options.folder}, function (err, blobs) {
             if (err) {
                 deferred.reject(err);
+                return;
             }
             var count = blobs.length;
-            if(count === 0){
+            if (count === 0) {
                 deferred.resolve();
             }
             blobs.forEach(function (blob, next) {
@@ -48,9 +50,10 @@ function emptyAzureCdnTargetFolder(blobService, options, logger) {
                     if (err) {
                         logger("Error while deleting blob", blob.name);
                         deferred.reject(err);
+                        return;
                     }
                     logger("deleted", blob.url);
-                    if(--count == 0){
+                    if (--count == 0) {
                         deferred.resolve();
                     }
                 });
@@ -65,9 +68,10 @@ function uploadFileToAzureCdn(blobService, options, logger, destFileName, source
     var deferred = Q.defer();
     var exec = options.testRun ? noop : blobService.createBlockBlobFromFile;
     logger("Uploading", destFileName, "encoding", metadata.contentEncoding);
-    exec.call(blobService, options.containerName, destFileName, sourceFile, metadata, function(err) {
+    exec.call(blobService, options.containerName, destFileName, sourceFile, metadata, function (err) {
         if (err) {
             deferred.reject(err);
+            return;
         }
         logger("Uploaded", destFileName, "to", options.containerName);
         deferred.resolve();
@@ -78,16 +82,16 @@ function uploadFileToAzureCdn(blobService, options, logger, destFileName, source
 function chooseSmallerFileAndModifyContentType(compressedFile, originalFile, metadata) {
     var deferred = Q.defer();
     fs.stat(compressedFile, function (err, compressedStats) {
-        if(err){
+        if (err) {
             deferred.reject(err);
             return;
         }
         fs.stat(originalFile, function (err, originalStats) {
-            if(err){
+            if (err) {
                 deferred.reject(err);
                 return;
             }
-            if(originalStats.size < compressedStats.size){
+            if (originalStats.size < compressedStats.size) {
                 // don't upload compressed if it becomes bigger
                 deferred.resolve({
                     zippedTmpFile: compressedFile,
@@ -95,7 +99,7 @@ function chooseSmallerFileAndModifyContentType(compressedFile, originalFile, met
                     updatedMetadata: metadata
                 });
             } else {
-                metadata.contentEncoding =  'gzip';
+                metadata.contentEncoding = 'gzip';
                 deferred.resolve({
                     zippedTmpFile: compressedFile,
                     fileToUpload: compressedFile,
@@ -108,7 +112,7 @@ function chooseSmallerFileAndModifyContentType(compressedFile, originalFile, met
     return deferred.promise;
 }
 
-function gzipFile(source){
+function gzipFile(source) {
     var tempFile;
     var deferred = Q.defer(),
         gzip = zlib.createGzip({
@@ -117,13 +121,13 @@ function gzipFile(source){
         inp,
         out;
 
-    gzip.on('error', function(err) {
+    gzip.on('error', function (err) {
         deferred.reject(err);
     });
     inp = fs.createReadStream(source);
     tempFile = source + '.zip';
     out = fs.createWriteStream(tempFile);
-    out.on('close', function() {
+    out.on('close', function () {
         deferred.resolve(tempFile);
     });
     inp.pipe(gzip).pipe(out);
@@ -156,18 +160,23 @@ module.exports = function deploy(opt, files, logger, cb) {
     }
     var blobService = azure.createBlobService.apply(azure, options.serviceOptions);
 
-    var preparation = createAzureCdnContainer(blobService, options).
-        then(function() {
+    var createFolderAndClearPromise = createAzureCdnContainer(blobService, options).
+        then(function () {
             return emptyAzureCdnTargetFolder(blobService, options, logger);
         });
-    async.eachLimit(files, options.concurrentUploadThreads, function(file, eachCallback) {
+    // allow deleting files without anything to upload
+    if (files.length === 0) {
+        createFolderAndClearPromise.then(cb, cb);
+        return;
+    }
+    async.eachLimit(files, options.concurrentUploadThreads, function (file, eachCallback) {
         var relativePath = path.relative(file.cwd, file.path);
         var destFileName = options.folder + relativePath;
         var sourceFile = file.path;
         var metadata = clone(options.metadata);
         metadata.contentType = mime.lookup(sourceFile);
         if (options.zip) {
-            preparation.then(function () {
+            createFolderAndClearPromise.then(function () {
                 return gzipFile(sourceFile)
             }).then(function (tmpFile) {
                 return chooseSmallerFileAndModifyContentType(tmpFile, sourceFile, metadata);
@@ -176,21 +185,21 @@ module.exports = function deploy(opt, files, logger, cb) {
                     .finally(function () {
                         fs.unlinkSync(res.zippedTmpFile);
                     });
-            }).then(function(){
+            }).then(function () {
                 eachCallback();
             }).catch(function (error) {
                 eachCallback(error);
             });
         } else {
-            preparation.then(function () {
+            createFolderAndClearPromise.then(function () {
                 return uploadFileToAzureCdn(blobService, options, logger, destFileName, sourceFile, metadata)
-            }).then(function(){
+            }).then(function () {
                 eachCallback();
             }).catch(function (error) {
                 eachCallback(error);
             });
         }
-    }, function(err) {
+    }, function (err) {
         cb(err);
     });
 };
