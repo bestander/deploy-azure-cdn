@@ -5,6 +5,7 @@ var path = require('path');
 var deploy = require('./src/deployTask');
 
 module.exports = {
+    // TODO extract gulp/grunt plugins to separate files
     gulpPlugin: function(opt){
         var PLUGIN_NAME = 'gulp-deploy-azure-cdn ';
         var files = [];
