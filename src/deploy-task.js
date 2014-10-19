@@ -1,6 +1,6 @@
 "use strict";
 var Q = require('q');
-var azure = require('azure');
+var azure = require('azure-storage');
 var mime = require('mime');
 var zlib = require('zlib');
 var fs = require('fs');
@@ -34,16 +34,16 @@ function emptyAzureCdnTargetFolder(blobService, options, loggerCallback) {
         deferred.resolve();
     } else {
         // removing all blobs in destination structure
-        blobService.listBlobs(options.containerName, {prefix: options.folder}, function (err, blobs) {
+        blobService.listBlobsSegmentedWithPrefix(options.containerName, options.folder, null, function (err, blobs) {
             if (err) {
                 deferred.reject(err);
                 return;
             }
-            var count = blobs.length;
+            var count = blobs.entries.length;
             if (count === 0) {
                 deferred.resolve();
             }
-            blobs.forEach(function (blob, next) {
+            blobs.entries.forEach(function (blob, next) {
                 loggerCallback("deleting file", blob.name);
                 var exec = options.testRun ? noop : blobService.deleteBlob;
                 exec.call(blobService, options.containerName, blob.name, function (err, success) {
@@ -52,7 +52,7 @@ function emptyAzureCdnTargetFolder(blobService, options, loggerCallback) {
                         deferred.reject(err);
                         return;
                     }
-                    loggerCallback("deleted", blob.url);
+                    loggerCallback("deleted", blob.name);
                     if (--count == 0) {
                         deferred.resolve();
                     }
@@ -66,7 +66,7 @@ function emptyAzureCdnTargetFolder(blobService, options, loggerCallback) {
 
 function uploadFileToAzureCdn(blobService, options, loggerCallback, destFileName, sourceFile, metadata) {
     var deferred = Q.defer();
-    var exec = options.testRun ? noop : blobService.createBlockBlobFromFile;
+    var exec = options.testRun ? noop : blobService.createBlockBlobFromLocalFile;
     loggerCallback("Uploading", destFileName, "encoding", metadata.contentEncoding);
     exec.call(blobService, options.containerName, destFileName, sourceFile, metadata, function (err) {
         if (err) {
@@ -116,8 +116,8 @@ function gzipFile(source) {
     var tempFile;
     var deferred = Q.defer();
     var gzip = zlib.createGzip({
-            level: 9 // maximum compression
-        });
+        level: 9 // maximum compression
+    });
     var inp;
     var out;
     gzip.on('error', function (err) {
@@ -149,7 +149,7 @@ function clone(obj) {
  * @param files - array of vynil files
  * @param loggerCallback - callback function that can be used for logging, some important progress is sent as first argument to this callback
  * @param cb - standard node.js callback. If first parameter is undefined then upload is successful
-` */
+ ` */
 module.exports = function deploy(opt, files, loggerCallback, cb) {
     var options = extend({}, {
         serviceOptions: [], // custom arguments to azure.createBlobService

@@ -5,10 +5,10 @@ jest.autoMockOff();
 describe('Azure Deploy Task', function () {
 
     it('should upload files as is, with no zipping, if zip option is false', function () {
-        jest.mock('azure');
+        jest.mock('azure-storage');
         jest.mock('zlib');
         var deploy = require('../src/deploy-task');
-        var azure = require('azure');
+        var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
             {cwd: '/project', path: '/project/dist/file1.js'},
@@ -32,11 +32,11 @@ describe('Azure Deploy Task', function () {
         });
         deploy(opts, files, logger, cb);
         jest.runAllTimers();
-        expect(azure.createBlobService().createBlockBlobFromFile).toBeCalled();
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][0]).toBe(opts.containerName);
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][2]).toBe('/project/dist/file1.js');
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][3]).toEqual({
+        expect(azure.createBlobService().createBlockBlobFromLocalFile).toBeCalled();
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][0]).toBe(opts.containerName);
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][2]).toBe('/project/dist/file1.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][3]).toEqual({
             cacheControl: 'public, max-age=31556926',
             contentType: 'application/javascript'
         });
@@ -44,12 +44,12 @@ describe('Azure Deploy Task', function () {
     });
 
     it('should gzip files and if size of zipped file is bigger it should upload the original file, if zip option is true', function () {
-        jest.mock('azure');
+        jest.mock('azure-storage');
         jest.mock('zlib');
         jest.mock('fs');
         var fs = require('fs');
         var deploy = require('../src/deploy-task');
-        var azure = require('azure');
+        var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
             {cwd: '/project', path: '/project/dist/file1.js'}
@@ -70,7 +70,7 @@ describe('Azure Deploy Task', function () {
         azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
             callback();
         });
-        azure.createBlobService().createBlockBlobFromFile.mockImplementation(function (param1, param2, param3, param4, callback) {
+        azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
             callback();
         });
         fs.createReadStream = jest.genMockFunction().mockReturnValue({
@@ -97,11 +97,11 @@ describe('Azure Deploy Task', function () {
         deploy(opts, files, logger, cb);
         jest.runAllTimers();
         expect(zlib.createGzip).toBeCalled();
-        expect(azure.createBlobService().createBlockBlobFromFile).toBeCalled();
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][0]).toBe(opts.containerName);
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][2]).toBe('/project/dist/file1.js');
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][3]).toEqual({
+        expect(azure.createBlobService().createBlockBlobFromLocalFile).toBeCalled();
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][0]).toBe(opts.containerName);
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][2]).toBe('/project/dist/file1.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][3]).toEqual({
             cacheControl: 'public, max-age=31556926',
             contentType: 'application/javascript'
         });
@@ -109,12 +109,12 @@ describe('Azure Deploy Task', function () {
     });
 
     it('should gzip files and if size of zipped file is smaller it should upload the gzip file, f zip option is true', function () {
-        jest.mock('azure');
+        jest.mock('azure-storage');
         jest.mock('zlib');
         jest.mock('fs');
         var fs = require('fs');
         var deploy = require('../src/deploy-task');
-        var azure = require('azure');
+        var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
             {cwd: '/project', path: '/project/dist/file1.js'}
@@ -135,7 +135,7 @@ describe('Azure Deploy Task', function () {
         azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
             callback();
         });
-        azure.createBlobService().createBlockBlobFromFile.mockImplementation(function (param1, param2, param3, param4, callback) {
+        azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
             callback();
         });
         fs.createReadStream = jest.genMockFunction().mockReturnValue({
@@ -162,11 +162,11 @@ describe('Azure Deploy Task', function () {
         deploy(opts, files, logger, cb);
         jest.runAllTimers();
         expect(zlib.createGzip).toBeCalled();
-        expect(azure.createBlobService().createBlockBlobFromFile).toBeCalled();
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][0]).toBe(opts.containerName);
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][2]).toBe('/project/dist/file1.js.zip');
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][3]).toEqual({
+        expect(azure.createBlobService().createBlockBlobFromLocalFile).toBeCalled();
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][0]).toBe(opts.containerName);
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][2]).toBe('/project/dist/file1.js.zip');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][3]).toEqual({
             cacheControl: 'public, max-age=31556926',
             contentType: 'application/javascript',
             contentEncoding: 'gzip'

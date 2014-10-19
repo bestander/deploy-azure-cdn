@@ -5,9 +5,9 @@ jest.autoMockOff();
 describe('Azure Deploy Task', function () {
 
     it('should create a new blob container if it does not exist', function () {
-        jest.mock('azure');
+        jest.mock('azure-storage');
         var deploy = require('../src/deploy-task');
-        var azure = require('azure');
+        var azure = require('azure-storage');
         var files = [];
         var logger = {};
         var cb = jest.genMockFunction();
@@ -29,9 +29,9 @@ describe('Azure Deploy Task', function () {
     });
 
     it('should stop execution a new blob container can\'t be created by azure', function () {
-        jest.mock('azure');
+        jest.mock('azure-storage');
         var deploy = require('../src/deploy-task');
-        var azure = require('azure');
+        var azure = require('azure-storage');
         var files = [];
         var logger = {};
         var cb = jest.genMockFunction();

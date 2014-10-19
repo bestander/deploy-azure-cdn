@@ -2,9 +2,9 @@
 
 var mocks = {
     createContainerIfNotExists: jest.genMockFunction(),
-    listBlobs: jest.genMockFunction(),
+    listBlobsSegmentedWithPrefix: jest.genMockFunction(),
     deleteBlob: jest.genMockFunction(),
-    createBlockBlobFromFile: jest.genMockFunction()
+    createBlockBlobFromLocalFile: jest.genMockFunction()
 };
 
 module.exports = {

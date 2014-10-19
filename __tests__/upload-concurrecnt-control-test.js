@@ -5,10 +5,10 @@ jest.autoMockOff();
 describe('Azure Deploy Task', function () {
 
     it('should upload concurrently not more than set in concurrentUploadThreads', function () {
-        jest.mock('azure');
+        jest.mock('azure-storage');
         jest.mock('zlib');
         var deploy = require('../src/deploy-task');
-        var azure = require('azure');
+        var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
             {cwd: '/project', path: '/project/dist/file1.js'},
@@ -33,21 +33,21 @@ describe('Azure Deploy Task', function () {
             callback();
         });
         var uploadCallbacks = [];
-        azure.createBlobService().createBlockBlobFromFile.mockImplementation(function (param1, param2, param3, param4, callback) {
+        azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
             uploadCallbacks.push(callback);
         });
         deploy(opts, files, logger, cb);
         jest.runAllTimers();
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls.length).toBe(2);
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[0][2]).toBe('/project/dist/file1.js');
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[1][2]).toBe('/project/dist/file2.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls.length).toBe(2);
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][2]).toBe('/project/dist/file1.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[1][2]).toBe('/project/dist/file2.js');
         uploadCallbacks.forEach(function(cb){
             cb();
         });
         jest.runAllTimers();
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls.length).toBe(4);
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[2][2]).toBe('/project/dist/file3.js');
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls[3][2]).toBe('/project/dist/file4.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls.length).toBe(4);
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[2][2]).toBe('/project/dist/file3.js');
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[3][2]).toBe('/project/dist/file4.js');
         uploadCallbacks.forEach(function(cb){
             cb();
         });
@@ -56,10 +56,10 @@ describe('Azure Deploy Task', function () {
     });
 
     it('should exit with error if one of the uploads fails', function () {
-        jest.mock('azure');
+        jest.mock('azure-storage');
         jest.mock('zlib');
         var deploy = require('../src/deploy-task');
-        var azure = require('azure');
+        var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
             {cwd: '/project', path: '/project/dist/file1.js'},
@@ -84,7 +84,7 @@ describe('Azure Deploy Task', function () {
             callback();
         });
         var uploadCallbacks = [];
-        azure.createBlobService().createBlockBlobFromFile.mockImplementation(function (param1, param2, param3, param4, callback) {
+        azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
             if(param3 === '/project/dist/file3.js') {
                 callback('Error uploading file 3');
             } else {
@@ -93,15 +93,15 @@ describe('Azure Deploy Task', function () {
         });
         deploy(opts, files, logger, cb);
         jest.runAllTimers();
-        expect(azure.createBlobService().createBlockBlobFromFile.mock.calls.length).toBe(4);
+        expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls.length).toBe(4);
         expect(cb).toBeCalledWith('Error uploading file 3');
     });
 
     it('should list the uploaded files with logger service but should not make the actual upload if testRun is true', function () {
-        jest.mock('azure');
+        jest.mock('azure-storage');
         jest.mock('zlib');
         var deploy = require('../src/deploy-task');
-        var azure = require('azure');
+        var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
             {cwd: '/project', path: '/project/dist/file1.js'},
@@ -125,12 +125,12 @@ describe('Azure Deploy Task', function () {
         azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
             callback();
         });
-        azure.createBlobService().createBlockBlobFromFile.mockImplementation(function (param1, param2, param3, param4, callback) {
+        azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
             callback();
         });
         deploy(opts, files, logger, cb);
         jest.runAllTimers();
-        expect(azure.createBlobService().createBlockBlobFromFile).not.toBeCalled();
+        expect(azure.createBlobService().createBlockBlobFromLocalFile).not.toBeCalled();
         expect(logger).toBeCalledWith("Uploading", "path/in/cdn/dist/file1.js", "encoding", undefined);
         expect(logger).toBeCalledWith("Uploaded", "path/in/cdn/dist/file1.js", "to", "testContainer");
         expect(logger).toBeCalledWith("Uploading", "path/in/cdn/dist/file2.js", "encoding", undefined);

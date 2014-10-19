@@ -1,10 +1,16 @@
 # deploy-azure-cdn
+[![Build Status](https://travis-ci.org/bestander/deploy-azure-cdn.svg?branch=master)](https://travis-ci.org/bestander/deploy-azure-cdn)
 
-A node package for copying a directory to Azure CDN storage.
-Also it provides a gulp plugin interface for easy deploy with [gulp](http://gulpjs.com/)
+A node package for uploading files to Azure Blob Storage.
+It is perfect for deploying compiled assets to Microsoft Azure CDN as a last step in a Continuous Integration setup.
 
-Azure SDK uses by default the environment variables AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_ACCESS_KEY.
-Custom connection arguments can be set in options.
+## Features
+
+- Ability to execute a "dry run" of deployment. The logging will indicate all files that will be deleted or uploaded but no actual changes to the blob storage will be done
+- Ability to gzip content and set a proper content encoding. If gzipped file becomes larger than original then only the original file will be uploaded
+- Ability to recursively remove files in a path of Azure Blob Storage
+- Ability to control number of concurrent files to be uploaded to avoid network congestion
+- Grunt and gulp plugins available
 
 ## Installing
 
@@ -12,14 +18,41 @@ Custom connection arguments can be set in options.
 npm install deploy-azure-cdn
 ```
 
-## Exported interface
+## Using
 
-- gulpPlugin: function(deployOptions) - to use with gulp
-- vanilla: function(deployOptions, files, logger, cb) - to use directly in node.js
+See `__tests__` folder for all possible scenarios.
 
-parameters:
+### Deploying a set of files to a path in blob storage
+
+```javascript
+var logger = console.log;
+var files = [
+    {cwd: 'node_modules/deploy-azure-cdn', path: '/Users/bestander/work/opensource/gulp-deploy-azure-cdn/node_modules/deploy-azure-cdn/index.js'},
+    {cwd: 'node_modules/deploy-azure-cdn', path: '/Users/bestander/work/opensource/gulp-deploy-azure-cdn/node_modules/deploy-azure-cdn/LICENSE'},
+    {cwd: 'node_modules/deploy-azure-cdn', path: '/Users/bestander/work/opensource/gulp-deploy-azure-cdn/node_modules/deploy-azure-cdn/package.json'}
+];
+var opts = {
+    serviceOptions: ['blobstoragename', '/OwQ/MyLongSecretStringFromAzureConfigPanel'], // custom arguments to azure.createBlobService
+    containerName: 'test', // container name in blob
+    containerOptions: {publicAccessLevel: "blob"}, // container options
+    folder: 'deploy/source', // path within container
+    deleteExistingBlobs: true, // true means recursively deleting anything under folder
+    concurrentUploadThreads: 2, // number of concurrent uploads, choose best for your network condition
+    zip: true, // gzip files if they become smaller after zipping, content-encoding header will change if file is zipped
+    metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
+    testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
+};
+deploy.vanilla(opts, files, logger, function(err){
+    if(err) {
+        console.log("Error deploying", err)
+    }
+    console.log('Job\'s done!');
+});
+```
+
+### Parameters
 - deployOptions - azure cdn and upload configs
-  - serviceOptions: [] - custom arguments to azure.createBlobService
+  - serviceOptions: [] - custom arguments to azure.createBlobService, or you can use Azure SDK environment variables AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_ACCESS_KEY
   - containerName: null -  container name, required
   - containerOptions: {publicAccessLevel: "blob"} - container options
   - folder: '', // path within container. Default is root directory of container
@@ -35,29 +68,11 @@ parameters:
 - cb - node callback
 
 
-## Using in Gulp example
-```javascript
-var deployCdn = require('gulp-deploy-azure-cdn');
 
-gulp.task('upload-app-to-azure', function () {
-    return gulp.src(['build/**/*'], {
-        cwd: 'build'
-    }).pipe(deployCdn.gulpPlugin({
-        containerName: 'test',
-        serviceOptions: ['<my azure cdn name>', '<my azure cdn secret>'],
-        folder:  'build-0.0.1/',
-        zip: true,
-        deleteExistingBlobs: true,
-        metadata: {
-            cacheControl: 'public, max-age=31530000', // cache in browser
-            cacheControlHeader: 'public, max-age=31530000' // cache in azure CDN. As this data does not change, we set it to 1 year
-        }
-    }))
-});
-
-```
-
-## Grunt plugin
+## Grunt and gulp plugins
 See my other repository: https://github.com/bestander/grunt-azure-cdn-deploy.
-Code is very similar but less structured.
+
+## TODO
+
+- use streams to upload encoded files
 
