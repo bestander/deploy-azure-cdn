@@ -10,7 +10,7 @@ It is perfect for deploying compiled assets to Microsoft Azure CDN as a last ste
 - Ability to gzip content and set a proper content encoding. If gzipped file becomes larger than original then only the original file will be uploaded
 - Ability to recursively remove files in a path of Azure Blob Storage
 - Ability to control number of concurrent files to be uploaded to avoid network congestion
-- Grunt and gulp plugins available
+- [Grunt](https://github.com/bestander/grunt-azure-cdn-deploy) and [gulp](https://github.com/bestander/gulp-deploy-azure-cdn) plugins available
 
 ## Installing
 
@@ -42,7 +42,7 @@ var opts = {
     metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
     testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
 };
-deploy.vanilla(opts, files, logger, function(err){
+deploy(opts, files, logger, function(err){
     if(err) {
         console.log("Error deploying", err)
     }
@@ -64,15 +64,17 @@ deploy.vanilla(opts, files, logger, function(err){
 - files: [] - array of files objects to be deployed
   - cwd - current working directory path
   - path - absolute path of file
-- logger - logger compatible with gutil.log(param1, param2...)
+- logger - logger compatible with console.log(param1, param2...)
 - cb - node callback
 
 
 
 ## Grunt and gulp plugins
-See my other repository: https://github.com/bestander/grunt-azure-cdn-deploy.
+See plugins as repositories:
+[https://github.com/bestander/grunt-azure-cdn-deploy](https://github.com/bestander/grunt-azure-cdn-deploy)
+[https://github.com/bestander/gulp-deploy-azure-cdn](https://github.com/bestander/gulp-deploy-azure-cdn)
 
-## TODO
+## TODO, contributions are welcome
 
 - use streams to upload encoded files
 
