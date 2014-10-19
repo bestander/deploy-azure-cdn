@@ -1,6 +1,6 @@
 {
   "name": "deploy-azure-cdn",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A package that copies files to Azure CDN. Can be used as gulp task.",
   "main": "index.js",
   "repository": {
