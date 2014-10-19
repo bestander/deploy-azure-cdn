@@ -51,21 +51,21 @@ deploy(opts, files, logger, function(err){
 ```
 
 ### Parameters
-- deployOptions - azure cdn and upload configs
-  - serviceOptions: [] - custom arguments to azure.createBlobService, or you can use Azure SDK environment variables AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_ACCESS_KEY
-  - containerName: null -  container name, required
-  - containerOptions: {publicAccessLevel: "blob"} - container options
-  - folder: '', // path within container. Default is root directory of container
-  - deleteExistingBlobs: true, // set it to false to skip recursive deleting blobs in folder
-  - concurrentUploadThreads : 10, // number of concurrent uploads, choose best for your network condition
-  - zip: false, // true if want to gzip the files before uploading. File will be zipped only if compressed file is smaller than original
-  - metadata: {cacheControl: 'public, max-age=31556926'} // metadata for each uploaded file
-  - testRun: false, // set to true if you just want to check connectivity and see deployment logs. No blobs will be removed or uplaoded.
-- files: [] - array of files objects to be deployed
-  - cwd - current working directory path
-  - path - absolute path of file
-- logger - logger compatible with console.log(param1, param2...)
-- cb - node callback
+- `deployOptions` - azure cdn and upload configs
+  - `serviceOptions`: [] - custom arguments to azure.createBlobService, or you can use Azure SDK environment variables AZURE_STORAGE_ACCOUNT and AZURE_STORAGE_ACCESS_KEY
+  - `containerName`: null -  container name, required
+  - `containerOptions`: {publicAccessLevel: "blob"} - container options
+  - `folder`: '', // path within container. Default is root directory of container
+  - `deleteExistingBlobs`: true, // set it to false to skip recursive deleting blobs in folder
+  - `concurrentUploadThreads` : 10, // number of concurrent uploads, choose best for your network condition
+  - `zip`: false, // true if want to gzip the files before uploading. File will be zipped only if compressed file is smaller than original
+  - `metadata`: {cacheControl: 'public, max-age=31556926'} // metadata for each uploaded file
+  - `testRun`: false, // set to true if you just want to check connectivity and see deployment logs. No blobs will be removed or uplaoded.
+- `files`: [] - array of files objects to be deployed
+  - `cwd` - current working directory path
+  - `path` - absolute path of file
+- `logger` - logger compatible with console.log(param1, param2...)
+- `cb` - node callback
 
 
 
