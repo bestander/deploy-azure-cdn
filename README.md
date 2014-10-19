@@ -71,8 +71,8 @@ deploy(opts, files, logger, function(err){
 
 ## Grunt and gulp plugins
 See plugins as repositories:
-[https://github.com/bestander/grunt-azure-cdn-deploy](https://github.com/bestander/grunt-azure-cdn-deploy)
-[https://github.com/bestander/gulp-deploy-azure-cdn](https://github.com/bestander/gulp-deploy-azure-cdn)
+- [https://github.com/bestander/grunt-azure-cdn-deploy](https://github.com/bestander/grunt-azure-cdn-deploy)
+- [https://github.com/bestander/gulp-deploy-azure-cdn](https://github.com/bestander/gulp-deploy-azure-cdn)
 
 ## TODO, contributions are welcome
 
