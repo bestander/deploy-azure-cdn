@@ -177,7 +177,7 @@ module.exports = function deploy(opt, files, loggerCallback, cb) {
         return;
     }
     async.eachLimit(files, options.concurrentUploadThreads, function (file, eachCallback) {
-        var relativePath = file.cwd ? path.relative(file.cwd, file.path) : file.path;
+        var relativePath = file.cwd ? path.relative(file.cwd, file.path) : path.basename(file.path);
         var destFileName = path.join(options.folder, file.dest || relativePath);
         var sourceFile = file.path;
         var metadata = clone(options.metadata);
