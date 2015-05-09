@@ -62,12 +62,12 @@ deploy(opts, files, logger, function(err){
   - `metadata`: {cacheControl: 'public, max-age=31556926'} // metadata for each uploaded file
   - `testRun`: false, // set to true if you just want to check connectivity and see deployment logs. No blobs will be removed or uplaoded.
 - `files`: [] - array of files objects to be deployed
-  - `cwd` - current working directory path
   - `path` - absolute path of file
+  - `cwd` - [deprecated] current working directory path. Now replaced by `base`
+  - `base` - the base directory in which the file is located. The relative path of file to this directory is used as the destination path
+    *Note*: if both `base` and `cwd` are missing, the file will be uploaded to the root of the CDN `folder`.
 - `logger` - logger compatible with console.log(param1, param2...)
 - `cb` - node callback
-
-
 
 ## Grunt and gulp plugins
 See plugins as repositories:
@@ -77,4 +77,3 @@ See plugins as repositories:
 ## TODO, contributions are welcome
 
 - use streams to upload encoded files
-

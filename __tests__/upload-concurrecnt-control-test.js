@@ -11,10 +11,10 @@ describe('Azure Deploy Task', function () {
         var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
-            {cwd: '/project', path: '/project/dist/file1.js'},
-            {cwd: '/project', path: '/project/dist/file2.js'},
-            {cwd: '/project', path: '/project/dist/file3.js'},
-            {cwd: '/project', path: '/project/dist/file4.js'}
+            {base: '/project', path: '/project/dist/file1.js'},
+            {base: '/project', path: '/project/dist/file2.js'},
+            {base: '/project', path: '/project/dist/file3.js'},
+            {base: '/project', path: '/project/dist/file4.js'}
         ];
         var logger = jest.genMockFunction();
         var cb = jest.genMockFunction();
@@ -62,10 +62,10 @@ describe('Azure Deploy Task', function () {
         var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
-            {cwd: '/project', path: '/project/dist/file1.js'},
-            {cwd: '/project', path: '/project/dist/file2.js'},
-            {cwd: '/project', path: '/project/dist/file3.js'},
-            {cwd: '/project', path: '/project/dist/file4.js'}
+            {base: '/project', path: '/project/dist/file1.js'},
+            {base: '/project', path: '/project/dist/file2.js'},
+            {base: '/project', path: '/project/dist/file3.js'},
+            {base: '/project', path: '/project/dist/file4.js'}
         ];
         var logger = jest.genMockFunction();
         var cb = jest.genMockFunction();
@@ -104,10 +104,10 @@ describe('Azure Deploy Task', function () {
         var azure = require('azure-storage');
         var zlib = require('zlib');
         var files = [
-            {cwd: '/project', path: '/project/dist/file1.js'},
-            {cwd: '/project', path: '/project/dist/file2.js'},
-            {cwd: '/project', path: '/project/dist/file3.js'},
-            {cwd: '/project', path: '/project/dist/file4.js'}
+            {base: '/project', path: '/project/dist/file1.js'},
+            {base: '/project', path: '/project/dist/file2.js'},
+            {base: '/project', path: '/project/dist/file3.js'},
+            {base: '/project', path: '/project/dist/file4.js'}
         ];
         var logger = jest.genMockFunction();
         var cb = jest.genMockFunction();
@@ -140,6 +140,61 @@ describe('Azure Deploy Task', function () {
         expect(logger).toBeCalledWith("Uploading", "path/in/cdn/dist/file4.js", "encoding", undefined);
         expect(logger).toBeCalledWith("Uploaded", "path/in/cdn/dist/file4.js", "to", "testContainer");
         expect(cb).toBeCalledWith(undefined);
+    });
+
+    it('should use cwd of a file if base missing and should warn about deprecation', function () {
+      jest.mock('azure-storage');
+      jest.mock('zlib');
+      var deploy = require('../src/deploy-task');
+      var azure = require('azure-storage');
+      var files = [
+          { cwd: '/project', path: '/project/dist/file1.js' },
+      ];
+      var logger = jest.genMockFunction();
+      var cb = jest.genMockFunction();
+      var opts = {
+          containerName: 'testContainer',
+          folder: 'path/in/cdn',
+          deleteExistingBlobs: false
+      };
+      azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
+          callback();
+      });
+      azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
+          callback();
+      });
+      deploy(opts, files, logger, cb);
+      jest.runAllTimers();
+      expect(logger).toBeCalledWith('[WARNING] `cwd` is deprecated. please use `base` in your files');
+      expect(logger).toBeCalledWith("Uploading", "path/in/cdn/dist/file1.js", "encoding", undefined);
+      expect(logger).toBeCalledWith("Uploaded", "path/in/cdn/dist/file1.js", "to", "testContainer");
+    });
+
+    it('should use filename if no base provided', function () {
+      jest.mock('azure-storage');
+      jest.mock('zlib');
+      var deploy = require('../src/deploy-task');
+      var azure = require('azure-storage');
+      var files = [
+          { path: '/project/dist/file1.js' },
+      ];
+      var logger = jest.genMockFunction();
+      var cb = jest.genMockFunction();
+      var opts = {
+          containerName: 'testContainer',
+          folder: 'path/in/cdn',
+          deleteExistingBlobs: false
+      };
+      azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
+          callback();
+      });
+      azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
+          callback();
+      });
+      deploy(opts, files, logger, cb);
+      jest.runAllTimers();
+      expect(logger).toBeCalledWith("Uploading", "path/in/cdn/file1.js", "encoding", undefined);
+      expect(logger).toBeCalledWith("Uploaded", "path/in/cdn/file1.js", "to", "testContainer");
     });
 
 });

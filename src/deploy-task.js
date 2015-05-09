@@ -177,7 +177,12 @@ module.exports = function deploy(opt, files, loggerCallback, cb) {
         return;
     }
     async.eachLimit(files, options.concurrentUploadThreads, function (file, eachCallback) {
-        var relativePath = file.cwd ? path.relative(file.cwd, file.path) : path.basename(file.path);
+        if(file.cwd && !file.base){
+          loggerCallback('[WARNING] `cwd` is deprecated. please use `base` in your files');
+        }
+
+        var dir = file.base || file.cwd;
+        var relativePath = dir ? path.relative(dir, file.path) : path.basename(file.path);
         var destFileName = path.join(options.folder, file.dest || relativePath);
         var sourceFile = file.path;
         var metadata = clone(options.metadata);
