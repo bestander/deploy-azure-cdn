@@ -215,4 +215,3 @@ module.exports = function deploy(opt, files, loggerCallback, cb) {
         cb(err);
     });
 };
-
