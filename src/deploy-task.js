@@ -68,7 +68,7 @@ function uploadFileToAzureCdn(blobService, options, loggerCallback, destFileName
     var deferred = Q.defer();
     var exec = options.testRun ? noop : blobService.createBlockBlobFromLocalFile;
     loggerCallback("Uploading", destFileName, "encoding", metadata.contentEncoding);
-    exec.call(blobService, options.containerName, destFileName, sourceFile, metadata, function (err) {
+    exec.call(blobService, options.containerName, destFileName, sourceFile, {contentSettings: metadata}, function (err) {
         if (err) {
             deferred.reject(err);
             return;
