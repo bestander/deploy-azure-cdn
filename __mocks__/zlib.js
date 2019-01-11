@@ -1,8 +1,7 @@
 "use strict";
 
-
 module.exports = {
-    createGzip: jest.genMockFunction().mockReturnValue({
-        on: jest.genMockFunction()
+    createGzip: jest.fn(() => {
+        on: jest.fn();
     })
 };

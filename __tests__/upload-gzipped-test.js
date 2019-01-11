@@ -1,6 +1,7 @@
 "use strict";
 // otherwise it starts mocking all node packages
 jest.autoMockOff();
+jest.useFakeTimers();
 
 describe('Azure Deploy Task', function () {
 
@@ -14,8 +15,8 @@ describe('Azure Deploy Task', function () {
             {cwd: '/project', path: '/project/dist/file1.js'},
             {cwd: '/project', path: '/project/dist/file2.js'}
         ];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -37,8 +38,10 @@ describe('Azure Deploy Task', function () {
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][2]).toBe('/project/dist/file1.js');
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][3]).toEqual({
-            cacheControl: 'public, max-age=31556926',
-            contentType: 'application/javascript'
+            contentSettings: {
+                cacheControl: 'public, max-age=31556926',
+                contentType: 'application/javascript'
+            }
         });
         expect(zlib.createGzip).not.toBeCalled();
     });
@@ -54,8 +57,8 @@ describe('Azure Deploy Task', function () {
         var files = [
             {cwd: '/project', path: '/project/dist/file1.js'}
         ];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -67,24 +70,26 @@ describe('Azure Deploy Task', function () {
             metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
             testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
         };
+        zlib.createGzip = jest.fn().mockReturnValue({on: jest.fn()});
+        azure.createBlobService().createBlockBlobFromLocalFile.mockClear();
         azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
             callback();
         });
         azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
             callback();
         });
-        fs.createReadStream = jest.genMockFunction().mockReturnValue({
-            pipe: jest.genMockFunction().mockReturnThis()
+        fs.createReadStream = jest.fn().mockReturnValue({
+            pipe: jest.fn().mockReturnThis()
         });
-        fs.createWriteStream = jest.genMockFunction().mockReturnValue({
+        fs.createWriteStream = jest.fn().mockReturnValue({
             on: function(event, cb){
                 if(event === 'close'){
                     cb();
                 }
             },
-            pipe: jest.genMockFunction().mockReturnThis()
+            pipe: jest.fn().mockReturnThis()
         });
-        fs.stat = jest.genMockFunction().mockImplementation(function(file, callback){
+        fs.stat = jest.fn().mockImplementation(function(file, callback){
             if(file === '/project/dist/file1.js'){
                 callback(null, {size: 100});
             }
@@ -92,7 +97,7 @@ describe('Azure Deploy Task', function () {
                 callback(null, {size: 101});
             }
         });
-        fs.unlinkSync = jest.genMockFunction();
+        fs.unlinkSync = jest.fn();
 
         deploy(opts, files, logger, cb);
         jest.runAllTimers();
@@ -102,13 +107,15 @@ describe('Azure Deploy Task', function () {
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][2]).toBe('/project/dist/file1.js');
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][3]).toEqual({
-            cacheControl: 'public, max-age=31556926',
-            contentType: 'application/javascript'
+            contentSettings: {
+                cacheControl: 'public, max-age=31556926',
+                contentType: 'application/javascript'
+            }
         });
         expect(fs.unlinkSync).toBeCalledWith('/project/dist/file1.js.zip');
     });
 
-    it('should gzip files and if size of zipped file is smaller it should upload the gzip file, f zip option is true', function () {
+    it('should gzip files and if size of zipped file is smaller it should upload the gzip file, if zip option is true', function () {
         jest.mock('azure-storage');
         jest.mock('zlib');
         jest.mock('fs');
@@ -119,8 +126,8 @@ describe('Azure Deploy Task', function () {
         var files = [
             {cwd: '/project', path: '/project/dist/file1.js'}
         ];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -132,24 +139,26 @@ describe('Azure Deploy Task', function () {
             metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
             testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
         };
+        zlib.createGzip = jest.fn().mockReturnValue({on: jest.fn()});
+        azure.createBlobService().createBlockBlobFromLocalFile.mockClear();
         azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
             callback();
         });
         azure.createBlobService().createBlockBlobFromLocalFile.mockImplementation(function (param1, param2, param3, param4, callback) {
             callback();
         });
-        fs.createReadStream = jest.genMockFunction().mockReturnValue({
-            pipe: jest.genMockFunction().mockReturnThis()
+        fs.createReadStream = jest.fn().mockReturnValue({
+            pipe: jest.fn().mockReturnThis()
         });
-        fs.createWriteStream = jest.genMockFunction().mockReturnValue({
+        fs.createWriteStream = jest.fn().mockReturnValue({
             on: function(event, cb){
                 if(event === 'close'){
                     cb();
                 }
             },
-            pipe: jest.genMockFunction().mockReturnThis()
+            pipe: jest.fn().mockReturnThis()
         });
-        fs.stat = jest.genMockFunction().mockImplementation(function(file, callback){
+        fs.stat = jest.fn().mockImplementation(function(file, callback){
             if(file === '/project/dist/file1.js'){
                 callback(null, {size: 101});
             }
@@ -157,7 +166,7 @@ describe('Azure Deploy Task', function () {
                 callback(null, {size: 100});
             }
         });
-        fs.unlinkSync = jest.genMockFunction();
+        fs.unlinkSync = jest.fn();
 
         deploy(opts, files, logger, cb);
         jest.runAllTimers();
@@ -167,9 +176,11 @@ describe('Azure Deploy Task', function () {
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][1]).toBe('path/in/cdn/dist/file1.js');
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][2]).toBe('/project/dist/file1.js.zip');
         expect(azure.createBlobService().createBlockBlobFromLocalFile.mock.calls[0][3]).toEqual({
-            cacheControl: 'public, max-age=31556926',
-            contentType: 'application/javascript',
-            contentEncoding: 'gzip'
+            contentSettings: {
+                cacheControl: 'public, max-age=31556926',
+                contentType: 'application/javascript',
+                contentEncoding: 'gzip'
+            }
         });
         expect(fs.unlinkSync).toBeCalledWith('/project/dist/file1.js.zip');
     });
