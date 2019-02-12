@@ -186,7 +186,7 @@ module.exports = function deploy(opt, files, loggerCallback, cb) {
         var destFileName = path.join(options.folder, file.dest || relativePath);
         var sourceFile = file.path;
         var metadata = clone(options.metadata);
-        metadata.contentType = mime.lookup(sourceFile);
+        metadata.contentType = mime.getType(sourceFile);
         if (options.zip) {
             createFolderAndClearPromise.then(function () {
                 return gzipFile(sourceFile)

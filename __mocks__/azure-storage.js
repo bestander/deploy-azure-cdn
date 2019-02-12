@@ -1,10 +1,10 @@
 "use strict";
 
 var mocks = {
-    createContainerIfNotExists: jest.genMockFunction(),
-    listBlobsSegmentedWithPrefix: jest.genMockFunction(),
-    deleteBlob: jest.genMockFunction(),
-    createBlockBlobFromLocalFile: jest.genMockFunction()
+    createContainerIfNotExists: jest.fn(),
+    listBlobsSegmentedWithPrefix: jest.fn(),
+    deleteBlob: jest.fn(),
+    createBlockBlobFromLocalFile: jest.fn()
 };
 
 module.exports = {

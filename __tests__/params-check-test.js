@@ -8,7 +8,7 @@ describe('Azure Deploy Task', function () {
         var deploy = require('../src/deploy-task');
         var files = [];
         var logger = {};
-        var cb = jest.genMockFunction();
+        var cb = jest.fn();
         deploy({
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: '', // container name, required

@@ -1,6 +1,7 @@
 "use strict";
 // otherwise it starts mocking all node packages
 jest.autoMockOff();
+jest.useFakeTimers();
 
 describe('Azure Deploy Task', function () {
 
@@ -10,7 +11,7 @@ describe('Azure Deploy Task', function () {
         var azure = require('azure-storage');
         var files = [];
         var logger = {};
-        var cb = jest.genMockFunction();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -36,8 +37,8 @@ describe('Azure Deploy Task', function () {
         var deploy = require('../src/deploy-task');
         var azure = require('azure-storage');
         var files = [];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -80,8 +81,8 @@ describe('Azure Deploy Task', function () {
         var deploy = require('../src/deploy-task');
         var azure = require('azure-storage');
         var files = [];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -124,8 +125,8 @@ describe('Azure Deploy Task', function () {
         var deploy = require('../src/deploy-task');
         var azure = require('azure-storage');
         var files = [];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -137,6 +138,7 @@ describe('Azure Deploy Task', function () {
             metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
             testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
         };
+        azure.createBlobService().deleteBlob.mockClear();
         azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
             callback();
         });
@@ -161,8 +163,8 @@ describe('Azure Deploy Task', function () {
             {cwd: 'app', path: '/dist/file1.js'},
             {cwd: 'app', path: '/dist/file2.js'}
         ];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -200,8 +202,8 @@ describe('Azure Deploy Task', function () {
         var deploy = require('../src/deploy-task');
         var azure = require('azure-storage');
         var files = [];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required

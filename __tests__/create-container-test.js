@@ -1,6 +1,7 @@
 "use strict";
 // otherwise it starts mocking all node packages
 jest.autoMockOff();
+jest.useFakeTimers();
 
 describe('Azure Deploy Task', function () {
 
@@ -10,7 +11,7 @@ describe('Azure Deploy Task', function () {
         var azure = require('azure-storage');
         var files = [];
         var logger = {};
-        var cb = jest.genMockFunction();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -34,7 +35,7 @@ describe('Azure Deploy Task', function () {
         var azure = require('azure-storage');
         var files = [];
         var logger = {};
-        var cb = jest.genMockFunction();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required

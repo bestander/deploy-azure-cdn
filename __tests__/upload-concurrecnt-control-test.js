@@ -1,6 +1,7 @@
 "use strict";
 // otherwise it starts mocking all node packages
 jest.autoMockOff();
+jest.useFakeTimers();
 
 describe('Azure Deploy Task', function () {
 
@@ -16,8 +17,8 @@ describe('Azure Deploy Task', function () {
             {base: '/project', path: '/project/dist/file3.js'},
             {base: '/project', path: '/project/dist/file4.js'}
         ];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -52,7 +53,7 @@ describe('Azure Deploy Task', function () {
             cb();
         });
         jest.runAllTimers();
-        expect(cb).toBeCalledWith(undefined);
+        expect(cb).toBeCalledWith(null);
     });
 
     it('should exit with error if one of the uploads fails', function () {
@@ -67,8 +68,8 @@ describe('Azure Deploy Task', function () {
             {base: '/project', path: '/project/dist/file3.js'},
             {base: '/project', path: '/project/dist/file4.js'}
         ];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -80,6 +81,7 @@ describe('Azure Deploy Task', function () {
             metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
             testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
         };
+        azure.createBlobService().createBlockBlobFromLocalFile.mockReset();
         azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
             callback();
         });
@@ -109,8 +111,8 @@ describe('Azure Deploy Task', function () {
             {base: '/project', path: '/project/dist/file3.js'},
             {base: '/project', path: '/project/dist/file4.js'}
         ];
-        var logger = jest.genMockFunction();
-        var cb = jest.genMockFunction();
+        var logger = jest.fn();
+        var cb = jest.fn();
         var opts = {
             serviceOptions: [], // custom arguments to azure.createBlobService
             containerName: 'testContainer', // container name, required
@@ -122,6 +124,7 @@ describe('Azure Deploy Task', function () {
             metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
             testRun: true // test run - means no blobs will be actually deleted or uploaded, see log messages for details
         };
+        azure.createBlobService().createBlockBlobFromLocalFile.mockReset();
         azure.createBlobService().createContainerIfNotExists.mockImplementation(function (param1, param2, callback) {
             callback();
         });
@@ -139,7 +142,7 @@ describe('Azure Deploy Task', function () {
         expect(logger).toBeCalledWith("Uploaded", "path/in/cdn/dist/file3.js", "to", "testContainer");
         expect(logger).toBeCalledWith("Uploading", "path/in/cdn/dist/file4.js", "encoding", undefined);
         expect(logger).toBeCalledWith("Uploaded", "path/in/cdn/dist/file4.js", "to", "testContainer");
-        expect(cb).toBeCalledWith(undefined);
+        expect(cb).toBeCalledWith(null);
     });
 
     it('should use cwd of a file if base missing and should warn about deprecation', function () {
@@ -150,8 +153,8 @@ describe('Azure Deploy Task', function () {
       var files = [
           { cwd: '/project', path: '/project/dist/file1.js' },
       ];
-      var logger = jest.genMockFunction();
-      var cb = jest.genMockFunction();
+      var logger = jest.fn();
+      var cb = jest.fn();
       var opts = {
           containerName: 'testContainer',
           folder: 'path/in/cdn',
@@ -178,8 +181,8 @@ describe('Azure Deploy Task', function () {
       var files = [
           { path: '/project/dist/file1.js' },
       ];
-      var logger = jest.genMockFunction();
-      var cb = jest.genMockFunction();
+      var logger = jest.fn();
+      var cb = jest.fn();
       var opts = {
           containerName: 'testContainer',
           folder: 'path/in/cdn',
@@ -205,8 +208,8 @@ describe('Azure Deploy Task', function () {
       var files = [
           { base: '/project', path: '/project/dist/file1.js', dest: 'path/some-file.js' },
       ];
-      var logger = jest.genMockFunction();
-      var cb = jest.genMockFunction();
+      var logger = jest.fn();
+      var cb = jest.fn();
       var opts = {
           containerName: 'testContainer',
           folder: 'path/in/cdn',
