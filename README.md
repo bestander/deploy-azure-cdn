@@ -59,6 +59,7 @@ deploy(opts, files, logger, function(err){
   - `deleteExistingBlobs`: true, // set it to false to skip recursive deleting blobs in folder
   - `concurrentUploadThreads` : 10, // number of concurrent uploads, choose best for your network condition
   - `zip`: false, // true if want to gzip the files before uploading. File will be zipped only if compressed file is smaller than original
+  - `filters`: `[new azure.ExponentialRetryPolicyFilter()]`, // list of filters to apply to blob service.
   - `metadata`: {cacheControl: 'public, max-age=31556926'} // metadata for each uploaded file
   - `testRun`: false, // set to true if you just want to check connectivity and see deployment logs. No blobs will be removed or uplaoded.
 - `files`: [] - array of files objects to be deployed
