@@ -158,7 +158,7 @@ module.exports = function deploy(opt, files, loggerCallback, cb) {
         folder: '', // path within container
         deleteExistingBlobs: true, // true means recursively deleting anything under folder
         concurrentUploadThreads: 10, // number of concurrent uploads, choose best for your network condition
-        filters: [new azure.ExponentialRetryPolicyFilter()], // list of filters to apply to blob service.
+        filters: [], // list of filters to apply to blob service.
         zip: false, // gzip files if they become smaller after zipping, content-encoding header will change if file is zipped
         metadata: {cacheControl: 'public, max-age=31556926'}, // metadata for each uploaded file
         testRun: false // test run - means no blobs will be actually deleted or uploaded, see log messages for details
@@ -220,3 +220,9 @@ module.exports = function deploy(opt, files, loggerCallback, cb) {
         cb(err);
     });
 };
+
+module.exports.filters = {
+    ExponentialRetryPolicyFilter: new azure.ExponentialRetryPolicyFilter(),
+    LinearRetryPolicyFilter : new azure.LinearRetryPolicyFilter(),
+    RetryPolicyFilter : new azure.RetryPolicyFilter()
+}
