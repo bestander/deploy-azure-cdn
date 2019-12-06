@@ -169,7 +169,9 @@ module.exports = function deploy(opt, files, loggerCallback, cb) {
     var blobService = azure.createBlobService.apply(azure, options.serviceOptions);
 
     if(options.filters && options.filters.length) {
-        options.filters.forEach(blobService.withFilter);
+        options.filters.forEach(function (filter) {
+            blobService = blobService.withFilter(filter);
+        });
     }
 
     var createFolderAndClearPromise = createAzureCdnContainer(blobService, options).
