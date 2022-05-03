@@ -1,6 +1,6 @@
 {
   "name": "deploy-azure-cdn",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A package that copies files to Azure CDN. Can be used as gulp task.",
   "main": "index.js",
   "repository": {
@@ -27,7 +27,7 @@
   "homepage": "https://github.com/bestander/deploy-azure-cdn",
   "dependencies": {
     "async": "^2.1.2",
-    "azure-storage": "^2.10.2",
+    "azure-storage": "^2.10.7",
     "mime": "^2.4.0",
     "node.extend": "^2.0.2",
     "q": "^1.4.1"
